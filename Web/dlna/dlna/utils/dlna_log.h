@@ -1,0 +1,1 @@
+#define cg_log_info(format...) cg_log_print(SEV_INFO, __FILE__, __LINE__, __PRETTY_FUNCTION__, format)
