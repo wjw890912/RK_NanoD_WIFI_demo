@@ -164,33 +164,33 @@ COMMON API void DeviceTask(void)
     UartHDC = RKDev_Open(DEV_CLASS_UART, UART_DEV1, NOT_CARE);
 
 
-    #ifdef _EMMC_BOOT_
+#ifdef _EMMC_BOOT_
     CreateDeviceList(DEVICE_LIST_EMMC_CODE);
-    #endif
+#endif
 
-    #ifdef _SPI_BOOT_
+#ifdef _SPI_BOOT_
     CreateDeviceList(DEVICE_LIST_SPI_CODE);
-    #endif
+#endif
 
     FW_Resource_Init();
 
-    #ifdef _EMMC_BOOT_
+#ifdef _EMMC_BOOT_
     CreateDeviceList(DEVICE_LIST_EMMC_USER1);
-    #endif
+#endif
 
-    #ifdef _SPI_BOOT_
-#if 1	
+#ifdef _SPI_BOOT_
+#if 1
     CreateDeviceList(DEVICE_LIST_SPI_USER1);
 #else if
 //	CreateDeviceList(DEVICE_LIST_SPI_USER2);
 #endif
-    #endif
+#endif
 
     CreateDeviceList(DEVICE_LIST_AUDIO);
 
-    #ifdef _USE_SHELL_
+#ifdef _USE_SHELL_
     RKTaskCreate(TASK_ID_SHELL,0, NULL);
-    #endif
+#endif
 
 
     while (1)
@@ -200,25 +200,25 @@ COMMON API void DeviceTask(void)
         switch (DeviceAskQueue.cmd)
         {
             case DEVICE_CMD_CREATE_LIST:
-            {
-                DEVICE_RESP_QUEUE DeviceRespQueue;
-                DeviceRespQueue.cmd = DEVICE_CMD_CREATE_LIST;
-
-                DeviceRespQueue.DeviceListID = DeviceAskQueue.DeviceListID;
-
-                ret = CreateDeviceList(DeviceAskQueue.DeviceListID);
-                if(ret == RK_SUCCESS)
                 {
-                    DeviceRespQueue.Status = RK_SUCCESS;
-                    rkos_queue_send(gpstDeviceTaskDataBlock->DeviceRespQueue, &DeviceRespQueue, MAX_DELAY);
+                    DEVICE_RESP_QUEUE DeviceRespQueue;
+                    DeviceRespQueue.cmd = DEVICE_CMD_CREATE_LIST;
+
+                    DeviceRespQueue.DeviceListID = DeviceAskQueue.DeviceListID;
+
+                    ret = CreateDeviceList(DeviceAskQueue.DeviceListID);
+                    if (ret == RK_SUCCESS)
+                    {
+                        DeviceRespQueue.Status = RK_SUCCESS;
+                        rkos_queue_send(gpstDeviceTaskDataBlock->DeviceRespQueue, &DeviceRespQueue, MAX_DELAY);
+                    }
+                    else
+                    {
+                        DeviceRespQueue.Status = RK_ERROR;
+                        rkos_queue_send(gpstDeviceTaskDataBlock->DeviceRespQueue, &DeviceRespQueue, MAX_DELAY);
+                    }
+                    break;
                 }
-                else
-                {
-                    DeviceRespQueue.Status = RK_ERROR;
-                    rkos_queue_send(gpstDeviceTaskDataBlock->DeviceRespQueue, &DeviceRespQueue, MAX_DELAY);
-                }
-                break;
-            }
             case DEVICE_CMD_DELETE_LIST:
                 break;
 
@@ -385,7 +385,7 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
                 ret = EmmcDev_GetAreaSize(hStorage, EMMC_AREA_USER, &StorageSise);
 
-                if(ret != RK_SUCCESS)
+                if (ret != RK_SUCCESS)
                 {
                     rk_print_string("emmc get user area size failure");
                     goto err;
@@ -409,10 +409,10 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
                 hLun = RKDev_Open(DEV_CLASS_LUN, 4, NOT_CARE);
 
-                if((hLun == NULL) || (hLun == (HDC)RK_ERROR) || (hLun == (HDC)RK_PARA_ERR))
+                if ((hLun == NULL) || (hLun == (HDC)RK_ERROR) || (hLun == (HDC)RK_PARA_ERR))
                 {
-                   rk_print_string("\nlun0 open failure");
-                   goto err;
+                    rk_print_string("\nlun0 open failure");
+                    goto err;
                 }
 
                 stCreateArg.hLun = hLun;
@@ -420,18 +420,18 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
                 ret = LunDev_GetSize(hLun, &stCreateArg.ParTotalSec);
 
-                if(ret != RK_SUCCESS)
+                if (ret != RK_SUCCESS)
                 {
-                   rk_print_string("\nlun0 get size failure");
-                   goto err;
+                    rk_print_string("\nlun0 get size failure");
+                    goto err;
                 }
 
                 ret = RKDev_Create(DEV_CLASS_PAR, 0, &stCreateArg);
 
-                if(ret != RK_SUCCESS)
+                if (ret != RK_SUCCESS)
                 {
-                   rk_print_string("\npar0 create failure");
-                   goto err;
+                    rk_print_string("\npar0 create failure");
+                    goto err;
                 }
 
                 hPar = RKDev_Open(DEV_CLASS_PAR, 0, NOT_CARE);
@@ -568,7 +568,7 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
                 //Create BcoreDev...
                 ret = RKDev_Create(DEV_CLASS_BCORE, 0, &stBcoreDevArg);
-                if(ret != RK_SUCCESS)
+                if (ret != RK_SUCCESS)
                 {
                     rk_print_string("BcoreDev create failure");
                 }
@@ -717,100 +717,100 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
                 return RK_SUCCESS;
             }
 
-       case DEVICE_LIST_SDIO_FIFO:
-           {
+        case DEVICE_LIST_SDIO_FIFO:
+            {
 
 #ifdef _DRIVER_AP6181_WIFI_C__
-               SDC_DEV_ARG stSdcArg;
-               HDC hSdc;
-               SDIO_DEV_ARG stSdioArg;
-               rk_err_t ret;
+                SDC_DEV_ARG stSdcArg;
+                HDC hSdc;
+                SDIO_DEV_ARG stSdioArg;
+                rk_err_t ret;
 
-               FIFO_DEV_ARG stFifoArg;
-               HDC hFileDev;
-               FILE_ATTR stFileAttr;
-
-
-               stSdcArg.hDma = RKDev_Open(DEV_CLASS_DMA, 0, NOT_CARE);
-               stSdcArg.Channel = 0;
-               if (stSdcArg.hDma <= 0)
-               {
-                   printf("\r\ndma device open failure\n");
-                   goto err;
-               }
-               ret = RKDev_Create(DEV_CLASS_SDC, SDC1, &stSdcArg);
-
-               if (ret != RK_SUCCESS)
-               {
-                   printf("\r\nsdc device device failure\n");
-                   goto err;
-               }
-
-               hSdc = RKDev_Open(DEV_CLASS_SDC, SDC1, NOT_CARE);
-
-               if ((hSdc == NULL) || (hSdc == (HDC)RK_ERROR) || (hSdc == (HDC)RK_PARA_ERR))
-               {
-                   printf("\r\nsdc device open failure\n");
-                   goto err;
-               }
-               stSdioArg.hSdc = hSdc;
-
-               ret = RKDev_Create(DEV_CLASS_SDIO, 0, &stSdioArg);
-
-              if (ret != RK_SUCCESS)
-              {
-                  printf("\r\SDIO0 device create failure\n");
-                  goto err;
-              }
-              printf("\r\SDIO0 device create success\n");
-
-              #if 1
-              hFileDev = RKDev_Open(DEV_CLASS_FILE, 0, READ_WRITE_CTRL);
-
-              if((hFileDev == NULL) || (hFileDev == (HDC)RK_ERROR) || (hFileDev == (HDC)RK_PARA_ERR))
-              {
-                  rk_print_string("File device open failure");
-              }
-
-              stFileAttr.Path = L"C:\\";
-              stFileAttr.FileName = L"RkFifiDevice.buf";
+                FIFO_DEV_ARG stFifoArg;
+                HDC hFileDev;
+                FILE_ATTR stFileAttr;
 
 
-              stFifoArg.hReadFile = FileDev_OpenFile(hFileDev, NULL, READ_WRITE, &stFileAttr);
-              if(stFifoArg.hReadFile <= 0)
-              {
-                  rk_print_string("file cache buffer open fail");
-                  goto err;
-              }
+                stSdcArg.hDma = RKDev_Open(DEV_CLASS_DMA, 0, NOT_CARE);
+                stSdcArg.Channel = 0;
+                if (stSdcArg.hDma <= 0)
+                {
+                    printf("\r\ndma device open failure\n");
+                    goto err;
+                }
+                ret = RKDev_Create(DEV_CLASS_SDC, SDC1, &stSdcArg);
 
-              stFifoArg.hWriteFile = FileDev_OpenFile(hFileDev, NULL, READ_WRITE, &stFileAttr);
-              if(stFifoArg.hReadFile <= 0)
-              {
-                  rk_print_string("file cache buffer open fail");
-                  goto err;
-              }
+                if (ret != RK_SUCCESS)
+                {
+                    printf("\r\nsdc device device failure\n");
+                    goto err;
+                }
 
-              RKDev_Close(hFileDev);
+                hSdc = RKDev_Open(DEV_CLASS_SDC, SDC1, NOT_CARE);
 
-              #endif
+                if ((hSdc == NULL) || (hSdc == (HDC)RK_ERROR) || (hSdc == (HDC)RK_PARA_ERR))
+                {
+                    printf("\r\nsdc device open failure\n");
+                    goto err;
+                }
+                stSdioArg.hSdc = hSdc;
 
-              stFifoArg.BlockCnt = 200000;
-              //stFifoArg.BlockCnt = 20;
-              stFifoArg.BlockSize = 1024;
-              stFifoArg.UseFile = 1;
+                ret = RKDev_Create(DEV_CLASS_SDIO, 0, &stSdioArg);
 
-              ret = RKDev_Create(DEV_CLASS_FIFO, 0, &stFifoArg);
+                if (ret != RK_SUCCESS)
+                {
+                    printf("\r\SDIO0 device create failure\n");
+                    goto err;
+                }
+                printf("\r\SDIO0 device create success\n");
 
-              if(ret != RK_SUCCESS)
-              {
-                  rk_print_string("fifo dev create failure");
-                  goto err;
-              }
-              rk_print_string("fifo dev create success");
+#if 1
+                hFileDev = RKDev_Open(DEV_CLASS_FILE, 0, READ_WRITE_CTRL);
+
+                if ((hFileDev == NULL) || (hFileDev == (HDC)RK_ERROR) || (hFileDev == (HDC)RK_PARA_ERR))
+                {
+                    rk_print_string("File device open failure");
+                }
+
+                stFileAttr.Path = L"C:\\";
+                stFileAttr.FileName = L"RkFifiDevice.buf";
+
+
+                stFifoArg.hReadFile = FileDev_OpenFile(hFileDev, NULL, READ_WRITE, &stFileAttr);
+                if (stFifoArg.hReadFile <= 0)
+                {
+                    rk_print_string("file cache buffer open fail");
+                    goto err;
+                }
+
+                stFifoArg.hWriteFile = FileDev_OpenFile(hFileDev, NULL, READ_WRITE, &stFileAttr);
+                if (stFifoArg.hReadFile <= 0)
+                {
+                    rk_print_string("file cache buffer open fail");
+                    goto err;
+                }
+
+                RKDev_Close(hFileDev);
 
 #endif
-              return RK_SUCCESS;
-        }
+
+                stFifoArg.BlockCnt = 200000;
+                //stFifoArg.BlockCnt = 20;
+                stFifoArg.BlockSize = 1024;
+                stFifoArg.UseFile = 1;
+
+                ret = RKDev_Create(DEV_CLASS_FIFO, 0, &stFifoArg);
+
+                if (ret != RK_SUCCESS)
+                {
+                    rk_print_string("fifo dev create failure");
+                    goto err;
+                }
+                rk_print_string("fifo dev create success");
+
+#endif
+                return RK_SUCCESS;
+            }
         case DEVICE_LIST_SPI_USER1:
             {
 
@@ -872,13 +872,13 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
                     goto err;
                 }
 
-                ret = SdDev_GetSize(hStorage, &stLunArg.dwEndLBA);				
+                ret = SdDev_GetSize(hStorage, &stLunArg.dwEndLBA);
                 if (ret != RK_SUCCESS)
                 {
                     rk_print_string("sd get size failure");
                     goto err;
                 }
-								rk_printf("sd Size %d \r\n",stLunArg.dwEndLBA);	
+                rk_printf("sd Size %d \r\n",stLunArg.dwEndLBA);
 
                 stLunArg.dwStartLBA = 0;
                 stLunArg.dwEndLBA--;
@@ -900,10 +900,10 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
                 hLun = RKDev_Open(DEV_CLASS_LUN, 4, NOT_CARE);
 
-                if((hLun == NULL) || (hLun == (HDC)RK_ERROR) || (hLun == (HDC)RK_PARA_ERR))
+                if ((hLun == NULL) || (hLun == (HDC)RK_ERROR) || (hLun == (HDC)RK_PARA_ERR))
                 {
-                   rk_print_string("\nlun0 open failure");
-                   goto err;
+                    rk_print_string("\nlun0 open failure");
+                    goto err;
                 }
 
                 stCreateArg.hLun = hLun;
@@ -911,19 +911,19 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
                 ret = LunDev_GetSize(hLun, &stCreateArg.ParTotalSec);
 
-                if(ret != RK_SUCCESS)
+                if (ret != RK_SUCCESS)
                 {
-                   rk_print_string("\nlun0 get size failure");
-                   goto err;
+                    rk_print_string("\nlun0 get size failure");
+                    goto err;
                 }
-				rk_printf("lun Size %d \r\n",stCreateArg.ParTotalSec);	
+                rk_printf("lun Size %d \r\n",stCreateArg.ParTotalSec);
 
                 ret = RKDev_Create(DEV_CLASS_PAR, 0, &stCreateArg);
 
-                if(ret != RK_SUCCESS)
+                if (ret != RK_SUCCESS)
                 {
-                   rk_print_string("\npar0 create failure");
-                   goto err;
+                    rk_print_string("\npar0 create failure");
+                    goto err;
                 }
 
                 hPar = RKDev_Open(DEV_CLASS_PAR, 0, NOT_CARE);
@@ -985,9 +985,9 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 #ifdef _SPI_BOOT_
 
 
-				USBOTG_DEV_ARG stUsbOtgDevArg;
-				USBMSC_DEV_ARG stUSBMSCDevArg;
-				HDC hUsbOtgDev;
+                USBOTG_DEV_ARG stUsbOtgDevArg;
+                USBMSC_DEV_ARG stUSBMSCDevArg;
+                HDC hUsbOtgDev;
 
                 DEVICE_CLASS * pDev;
                 rk_err_t ret;
@@ -995,42 +995,42 @@ COMMON FUN rk_err_t CreateDeviceList(uint32 DeviceListID)
 
 
                 rk_printf("\nwill create USBOTG \n");
-				
-				//Init UsbOtgDev arg...
-				stUsbOtgDevArg.usbmode = USBOTG_MODE_HOST;
-				
-				//Create UsbOtgDev...
-				ret = RKDev_Create(DEV_CLASS_USBOTG, 0, &stUsbOtgDevArg);
-				if (ret != RK_SUCCESS)
-				{
-					rk_print_string("UsbOtgDev create failure");
-					goto err;
-				}
+
+                //Init UsbOtgDev arg...
+                stUsbOtgDevArg.usbmode = USBOTG_MODE_HOST;
+
+                //Create UsbOtgDev...
+                ret = RKDev_Create(DEV_CLASS_USBOTG, 0, &stUsbOtgDevArg);
+                if (ret != RK_SUCCESS)
+                {
+                    rk_print_string("UsbOtgDev create failure");
+                    goto err;
+                }
 
 
-				hUsbOtgDev = RKDev_Open(DEV_CLASS_USBOTG, 0, NOT_CARE);
-				if ((hUsbOtgDev == NULL) || (hUsbOtgDev == (HDC)RK_ERROR) || (hUsbOtgDev == (HDC)RK_PARA_ERR))
-				{
-					printf("UsbOtgDev open failure for Init USBMSC\n");
-					goto err;
-				}
-				
-			
-				//Init USBMSCDev arg...
-				stUSBMSCDevArg.hUsbOtgDev = hUsbOtgDev;
-				
-				//Create USBMSCDev...
-				ret = RKDev_Create(DEV_CLASS_USBMSC, 0, &stUSBMSCDevArg);
-				if (ret != RK_SUCCESS)
-				{
-					rk_print_string("USBMSCDev create failure");
-					goto err;
-				}
-				
-				//do test otgdev....
-				//UsbOtgDev_Connect(hUsbOtgDev, 0);
-				//do test otgHost...
-				UsbOtgHost_Connect(hUsbOtgDev,0);
+                hUsbOtgDev = RKDev_Open(DEV_CLASS_USBOTG, 0, NOT_CARE);
+                if ((hUsbOtgDev == NULL) || (hUsbOtgDev == (HDC)RK_ERROR) || (hUsbOtgDev == (HDC)RK_PARA_ERR))
+                {
+                    printf("UsbOtgDev open failure for Init USBMSC\n");
+                    goto err;
+                }
+
+
+                //Init USBMSCDev arg...
+                stUSBMSCDevArg.hUsbOtgDev = hUsbOtgDev;
+
+                //Create USBMSCDev...
+                ret = RKDev_Create(DEV_CLASS_USBMSC, 0, &stUSBMSCDevArg);
+                if (ret != RK_SUCCESS)
+                {
+                    rk_print_string("USBMSCDev create failure");
+                    goto err;
+                }
+
+                //do test otgdev....
+                //UsbOtgDev_Connect(hUsbOtgDev, 0);
+                //do test otgHost...
+                UsbOtgHost_Connect(hUsbOtgDev,0);
 
 
 #endif
